@@ -8,7 +8,7 @@ from keras import backend as K
 
 if __name__ == "__main__":
  # Set that the color channel value will be first
- K.set_image_data_format("channels_first")
+ K.set_image_data_format("channels_last")
  # Set seed
  np.random.seed(0)
 
@@ -18,10 +18,10 @@ if __name__ == "__main__":
  width = 28
  # Load data and target from MNIST data
  (data_train, target_train), (data_test, target_test) = mnist.load_data()
- # Reshape training image data into features
- data_train = data_train.reshape(data_train.shape[0], channels, height, width)
+ # Reshape training image data into features (Tensorflow only supports NHWC on CPU)
+ data_train = data_train.reshape(data_train.shape[0], height, width, channels)
  # Reshape test image data into features
- data_test = data_test.reshape(data_test.shape[0], channels, height, width)
+ data_test = data_test.reshape(data_test.shape[0], height, width, channels)
  # Rescale pixel intensity to between 0 and 1
  features_train = data_train / 255
  features_test = data_test / 255
@@ -32,10 +32,7 @@ if __name__ == "__main__":
  # Start neural network
  network = Sequential()
  # Add convolutional layer with 64 filters, a 5x5 window, and ReLU activation function
- network.add(Conv2D(filters=64,
-  kernel_size=(5, 5),
-  input_shape=(channels, width, height),
-  activation='relu'))
+ network.add(Conv2D(filters=64, kernel_size=(5, 5), input_shape=(height, width, channels), activation='relu'))
  # Add max pooling layer with a 2x2 window
  network.add(MaxPooling2D(pool_size=(2, 2)))
  # Add dropout layer
@@ -60,3 +57,6 @@ if __name__ == "__main__":
   verbose=0, # Don't print description after each epoch
   batch_size=1000, # Number of observations per batch
   validation_data=(features_test, target_test)) # Data for evaluation
+
+ print(data_test)
+ #print(network.predict())
